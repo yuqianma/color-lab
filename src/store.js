@@ -16,11 +16,7 @@ export const initialState = {
 
 const reducers = {
   'palette/replace': (_, payload) => payload,
-  'palette/add': ({ palette }, payload) => {
-    palette = palette.slice();
-    palette.push(payload);
-    return palette; 
-  },
+  'palette/add': ({ palette }, payload) => palette.concat(payload),
   'palette/del': ({ palette }, payload) => {
     palette = palette.slice();
     palette.splice(palette.indexOf(payload), 1);
