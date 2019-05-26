@@ -22,6 +22,11 @@ const reducers = {
     palette.splice(palette.indexOf(payload), 1);
     return palette; 
   },
+  'palette/update': ({ palette }, { current, next }) => {
+    palette = palette.slice();
+    palette.splice(palette.indexOf(current), 1, next);
+    return palette; 
+  },
   'editing/hover': (_, payload) => normalizeColor(payload),
   'editing/unhover': () => null,
 };
