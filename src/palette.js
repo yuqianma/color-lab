@@ -14,7 +14,7 @@ export const Palette = ({
         payload: e.target.value.trim().split('\n')
       })}
     >
-      ${state.palette.join('\n')}
+      ${state.palette.map(c => c.hex()).join('\n')}
     </textarea>
   </div>`;
 };

@@ -1,4 +1,4 @@
-import { normalizeColor } from './util.js';
+import { labEqual } from './util.js';
 
 const PALETTE = `#7fc97f
 #beaed4
@@ -8,27 +8,28 @@ const PALETTE = `#7fc97f
 #f0027f
 #bf5b17
 #666666`;
+// const PALETTE = `#666666`;
 
 export const initialState = {
-  palette: PALETTE.split('\n'),
-  editing: null,
+  palette: PALETTE.split('\n').map(c => d3.lab(c)),
+  editingIdx: null,
 };
 
 const reducers = {
-  'palette/replace': (_, payload) => payload,
-  'palette/add': ({ palette }, payload) => palette.concat(payload),
-  'palette/del': ({ palette }, payload) => {
+  'palette/replace': (_, payload) => payload.map(c => d3.lab(c)),
+  'palette/add': ({ palette }, payload) => palette.concat(d3.lab(payload)),
+  // 'palette/del': ({ palette }, payload) => {
+  //   palette = palette.slice();
+  //   palette.splice(palette.indexOf(payload), 1);
+  //   return palette; 
+  // },
+  'palette/update': ({ palette }, { idx, next }) => {
     palette = palette.slice();
-    palette.splice(palette.indexOf(payload), 1);
-    return palette; 
+    palette[idx] = next;
+    return palette;
   },
-  'palette/update': ({ palette }, { current, next }) => {
-    palette = palette.slice();
-    palette.splice(palette.indexOf(current), 1, next);
-    return palette; 
-  },
-  'editing/hover': (_, payload) => normalizeColor(payload),
-  'editing/unhover': () => null,
+  'editingIdx/hover': (_, payload) => payload,
+  'editingIdx/unhover': () => null,
 };
 
 export function reducer(state, { type, payload }) {

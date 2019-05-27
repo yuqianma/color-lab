@@ -1,5 +1,4 @@
 import { StoreContext } from './store-context.js';
-import { normalizeColor } from './util.js';
 const { useMemo, useCallback, useContext, useRef, useEffect } = preactHooks;
 
 const COLOR_DOMAIN = [-128, 128];
@@ -24,7 +23,7 @@ const useDrag = (dragHandler, args) => {
 
   return {
     onmousedown,
-    onmouseup,
+    // onmouseup,
   }
 };
 
@@ -34,8 +33,8 @@ const ColorAB = ({
   padding = 5,
   colors,
 }) => {
-  const w = width - padding * 2;
-  const h = height - padding * 2;
+  // const w = width - padding * 2;
+  // const h = height - padding * 2;
   const xscale = useMemo(
     () => d3.scaleLinear(COLOR_DOMAIN, [padding, width - padding]),
     [padding, width]);
@@ -44,29 +43,38 @@ const ColorAB = ({
     [padding, height]);
 
   const { state, dispatch } = useContext(StoreContext);
+  const { editingIdx } = state;
 
-  const { editing } = state;
+  const colorsRef = useRef(colors);
+  colorsRef.current = colors;
 
   const drag = useDrag((e) => {
     const { offsetX, offsetY } = e;
     const a = xscale.invert(offsetX);
     const b = yscale.invert(offsetY);
 
-    const currentLab = d3.lab(e.draggingTarget.getAttribute('fill'));
-    const current = currentLab.hex();
-    const next = d3.lab(currentLab.l, a, b).hex();
+    const idx = e.draggingTarget.dataset.idx;
+
+    const current = colorsRef.current[idx];
+    const next = d3.lab(current.l, a, b);
     
     current !== next && dispatch({
       type: 'palette/update',
-      payload: {
-        current,
-        next
-      }
+      payload: { idx, next }
     });
-  }, [xscale, yscale]);
+  }, [/* FIXME */]);
 
   return html`<g>
     <rect ...${{ width, height }} stroke="currentColor" fill="none"/>
+    <text
+      x=5
+      style=${{
+        'dominant-baseline': 'text-before-edge',
+        'user-select': 'none',
+        'fill': '#aaa',
+        'font-size': '12px'
+      }}
+    >a*, b*</text>
     <line
       ...${{
         x1: padding,
@@ -86,19 +94,20 @@ const ColorAB = ({
       }}
     />
     <g ...${drag}>
-    ${colors.map(c => {
+    ${colors.map((c, idx) => {
       return html`<circle
+        data-idx=${idx}
         style=${{ cursor: 'pointer' }}
         cx=${xscale(c.a)} cy=${yscale(c.b)} r="5"
-        fill=${c.hex()}
+        fill=${c + ''}
         stroke="#000"
-        stroke-width=${editing === normalizeColor(c) ? 1 : 0}
+        stroke-width=${editingIdx === idx ? 1 : 0}
         onmouseover=${() => dispatch({
-          type: 'editing/hover',
-          payload: c
+          type: 'editingIdx/hover',
+          payload: idx
         })}
         onmouseout=${() => dispatch({
-          type: 'editing/unhover'
+          type: 'editingIdx/unhover'
         })}
       />`
     })}
@@ -121,33 +130,43 @@ const ColorL = ({
   const scale = useMemo(() => d3.scaleLinear([100, 0], [paddingV, h]), [h]);
 
   const { state, dispatch } = useContext(StoreContext);
+  const { editingIdx } = state;
 
-  const { editing } = state;
+  const colorsRef = useRef(colors);
+  colorsRef.current = colors;
 
   const drag = useDrag((e) => {
     const { offsetY } = e;
     const l = scale.invert(offsetY);
 
-    const currentLab = d3.lab(e.draggingTarget.getAttribute('fill'));
-    const current = currentLab.hex();
-    const next = d3.lab(l, currentLab.a, currentLab.b).hex();
-    
+    const idx = e.draggingTarget.dataset.idx;
+
+    const current = colorsRef.current[idx];
+    const next = d3.lab(l, current.a, current.b);
+
     current !== next && dispatch({
       type: 'palette/update',
-      payload: {
-        current,
-        next
-      }
+      payload: { idx, next }
     });
-  }, [scale]);
+  }, [/* FIXME */]);
 
   return html`<g ...${drag} style=${{ transform: `translate(${left + marginLeft}px,0)` }}>
     <rect width=${w} height=${height} stroke="currentColor" fill="none"/>
-    ${colors.map(c => {
+    <text
+      x=5
+      style=${{
+        'dominant-baseline': 'text-before-edge',
+        'user-select': 'none',
+        'fill': '#aaa',
+        'font-size': '12px'
+      }}
+    >L*</text>
+    ${colors.map((c, idx) => {
       const y = scale(c.l);
-      const isEditing = editing === normalizeColor(c);
+      const isEditing = editingIdx === idx;
       const height = isEditing ? 3 : 2;
       return html`<rect
+        data-idx=${idx}
         ...${{
           x: paddingH,
           y: y - height / 2,
@@ -159,11 +178,11 @@ const ColorL = ({
         stroke="#333"
         stroke-width=${isEditing ? 1 : 0}
         onmouseover=${() => dispatch({
-          type: 'editing/hover',
-          payload: c
+          type: 'editingIdx/hover',
+          payload: idx
         })}
         onmouseout=${() => dispatch({
-          type: 'editing/unhover'
+          type: 'editingIdx/unhover'
         })}
       />`;
     })}
@@ -179,7 +198,7 @@ const ColorAxis = ({
 
   const { state, dispatch } = useContext(StoreContext);
   const { palette } = state;
-  const colors = palette.map(c => d3.lab(c));
+  const colors = palette;
 
   return html`<svg ...${{ width, height }} style=${{ color: '#aaa' }}>
     <${ColorAB} ...${{ width: height, height, colors }} />
