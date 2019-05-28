@@ -1,6 +1,24 @@
 import { StoreContext } from './store-context.js';
 const { useMemo, useCallback, useContext, useRef, useEffect } = preactHooks;
 
+const STYLE = `
+.color-controls svg {
+  color: #aaa;
+}
+.color-controls svg .desc {
+  dominant-baseline: text-before-edge;
+  user-select: none;
+  fill: #aaa;
+  font-size: 12px;
+}
+.color-controls .controller {
+  font-family: monospace;
+}
+.color-controls .controller input[type=range] {
+  width: 200px;
+}
+`;
+
 const COLOR_DOMAIN = [-128, 128];
 
 const useDrag = (dragHandler, args) => {
@@ -26,6 +44,31 @@ const useDrag = (dragHandler, args) => {
     // onmouseup,
   }
 };
+
+const LCHController = ({
+  width = 320
+}) => {
+  const { state, dispatch } = useContext(StoreContext);
+  const { palette, editingIdx } = state;
+
+  const targetColor = palette[editingIdx];
+  const { l, c, h } = targetColor ? d3.lch(targetColor) : {};
+
+  return html`<div class="lch controller">
+    ${[
+      { name: 'L', min: 0, max: 100, value: l },
+      { name: 'C', min: 0, max: 230, value: c },
+      { name: 'H', min: 0, max: 360, value: h },
+    ].map((v) =>
+      html`<div>
+        <span class="label">${v.name}</span>
+        <input type=range ...${v} />
+        ${v.value}
+      </div>`
+    )}
+    
+  </div>`
+}
 
 const ColorAB = ({
   width = 300,
@@ -199,15 +242,7 @@ const ColorAxis = ({
   const { palette } = state;
   const colors = palette;
 
-  return html`<svg ...${{ width, height }} style=${{ color: '#aaa' }}>
-    <style>
-      .desc {
-        dominant-baseline: text-before-edge;
-        user-select: none;
-        fill: #aaa;
-        font-size: 12px;
-      }
-    </style>
+  return html`<svg ...${{ width, height }}>
     <${ColorAB} ...${{ width: height, height, colors }} />
     <${ColorL} ...${{ left: height, width: lWidth, height, colors }}/>
   </svg>`;
@@ -216,7 +251,9 @@ const ColorAxis = ({
 export const ColorControls = ({
 }) => {
   return html`<div class="color-controls">
+    <style>${STYLE}</style>
     <div class="title">Color Controls</div>
+    <${LCHController} />
     <${ColorAxis} />
   </div>`;
 };
