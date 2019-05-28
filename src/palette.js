@@ -13,8 +13,8 @@ export const Palette = ({
         type: 'palette/replace',
         payload: e.target.value.trim().split('\n')
       })}
+      value=${state.palette.map(c => c.hex()).join('\n')}
     >
-      ${state.palette.map(c => c.hex()).join('\n')}
     </textarea>
   </div>`;
 };
