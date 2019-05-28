@@ -189,11 +189,11 @@ const ColorL = ({
 };
 
 const ColorAxis = ({
-  width = 400,
-  lPct = 0.2,
+  height = 300, // axis width === height
+  lPct = 0.25,
 }) => {
-  const lWidth = width * lPct;
-  const height = width - lWidth;
+  const lWidth = height * lPct;
+  const width = height + lWidth;
 
   const { state, dispatch } = useContext(StoreContext);
   const { palette } = state;

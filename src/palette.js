@@ -42,7 +42,7 @@ export const Palette = ({
       </div>
       <div
         contenteditable="plaintext-only"
-        style=${{ width: 100, height: 320 }}
+        style=${{ width: 100, height: 300 }}
         onblur=${e => dispatch({
           type: 'palette/replace',
           payload: e.target.textContent.trim().split('\n')
