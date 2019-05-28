@@ -2,22 +2,21 @@ import { StoreContext } from './store-context.js';
 const { useReducer, useMemo, useContext, useRef, useEffect } = preactHooks;
 
 const STYLE = `
+.palette {
+  margin-right: 50px;
+}
 .palette .text-box {
   position: relative;
   font-family: monospace;
-  font-size: 14px;
-  line-height: 1.25;
+  font-size: 13px;
 }
-.palette .text-box textarea {
+.palette .text-box [contenteditable] {
   position: absolute;
   top: 0;
-  font-family: monospace;
-  font-size: 14px;
-  background: transparent;
-  border-width: 1px;
+  border: 1px solid #aaa;
   padding: 2px;
-  padding-left: 1.5em;
-  line-height: 1.25;
+  padding-left: 1em;
+  box-sizing: border-box;
 }
 .palette .text-box .icons {
   padding: 3px;
@@ -25,7 +24,7 @@ const STYLE = `
 `;
 
 export const Palette = ({
-  width = 200,
+  width = 100,
 }) => {
   const { state, dispatch } = useContext(StoreContext);
   const { palette } = state;
@@ -34,21 +33,23 @@ export const Palette = ({
     style=${{ width }}
   >
     <style>${STYLE}</style>
-    <h3>Palette</h3>
+    <div class="title">Palette</div>
     <div class="text-box">
       <div class="icons">
         ${palette.map(c => {
-          return html`<div style=${{ color: c.hex() }}>●</div>`;
+          return html`<div style=${{ color: c.hex() }}>•</div>`;
         })}
       </div>
-      <textarea
-        style=${{ width: 100, height: 300 }}
-        onchange=${e => dispatch({
+      <div
+        contenteditable="plaintext-only"
+        style=${{ width: 100, height: 320 }}
+        onblur=${e => dispatch({
           type: 'palette/replace',
-          payload: e.target.value.trim().split('\n')
+          payload: e.target.textContent.trim().split('\n')
         })}
-        value=${palette.map(c => c.hex()).join('\n')}
-      />
+      >
+        ${palette.map(c => c.hex()).join('\n')}
+      </div>
     </div>
     
   </div>`;

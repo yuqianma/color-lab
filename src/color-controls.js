@@ -45,6 +45,8 @@ const ColorAB = ({
   const { state, dispatch } = useContext(StoreContext);
   const { editingIdx } = state;
 
+  const isEditing = editingIdx != null;
+
   const colorsRef = useRef(colors);
   colorsRef.current = colors;
 
@@ -66,15 +68,7 @@ const ColorAB = ({
 
   return html`<g>
     <rect ...${{ width, height }} stroke="currentColor" fill="none"/>
-    <text
-      x=5
-      style=${{
-        'dominant-baseline': 'text-before-edge',
-        'user-select': 'none',
-        'fill': '#aaa',
-        'font-size': '12px'
-      }}
-    >a*, b*</text>
+    <text x=5 class="desc">a*, b*</text>
     <line
       ...${{
         x1: padding,
@@ -95,13 +89,17 @@ const ColorAB = ({
     />
     <g ...${drag}>
     ${colors.map((c, idx) => {
+      const thisIsEditing = editingIdx === idx;
+      const canHover = !isEditing || thisIsEditing;
       return html`<circle
         data-idx=${idx}
-        style=${{ cursor: 'pointer' }}
-        cx=${xscale(c.a)} cy=${yscale(c.b)} r="5"
+        style=${{
+          cursor: 'pointer',
+          'pointer-events': canHover ? 'inherit' : 'none'
+        }}
+        cx=${xscale(c.a)} cy=${yscale(c.b)}
+        r=${thisIsEditing ? 7 : 5}
         fill=${c + ''}
-        stroke="#000"
-        stroke-width=${editingIdx === idx ? 1 : 0}
         onmouseover=${() => dispatch({
           type: 'editingIdx/hover',
           payload: idx
@@ -125,12 +123,13 @@ const ColorL = ({
   colors,
 }) => {
   const w = width - marginLeft;
-  const h = height - paddingV * 2;
   
-  const scale = useMemo(() => d3.scaleLinear([100, 0], [paddingV, h]), [h]);
+  const scale = useMemo(() => d3.scaleLinear([100, 0], [paddingV, height - paddingV]), [paddingV, height]);
 
   const { state, dispatch } = useContext(StoreContext);
   const { editingIdx } = state;
+
+  const isEditing = editingIdx != null;
 
   const colorsRef = useRef(colors);
   colorsRef.current = colors;
@@ -152,31 +151,31 @@ const ColorL = ({
 
   return html`<g ...${drag} style=${{ transform: `translate(${left + marginLeft}px,0)` }}>
     <rect width=${w} height=${height} stroke="currentColor" fill="none"/>
-    <text
-      x=5
-      style=${{
-        'dominant-baseline': 'text-before-edge',
-        'user-select': 'none',
-        'fill': '#aaa',
-        'font-size': '12px'
-      }}
-    >L*</text>
+    <text x=5 class="desc">L*</text>
     ${colors.map((c, idx) => {
       const y = scale(c.l);
-      const isEditing = editingIdx === idx;
-      const height = isEditing ? 3 : 2;
-      return html`<rect
+      const thisIsEditing = editingIdx === idx;
+      const canHover = !isEditing || thisIsEditing;
+      const xy = thisIsEditing ? {
+        x1: paddingH - 3,
+        x2: w - paddingH + 3,
+        y1: y,
+        y2: y
+      } : {
+        x1: paddingH,
+        x2: w - paddingH,
+        y1: y,
+        y2: y
+      }
+      return html`<line
         data-idx=${idx}
-        ...${{
-          x: paddingH,
-          y: y - height / 2,
-          width: w - paddingH * 2,
-          height
+        ...${xy}
+        style=${{
+          cursor: 'pointer',
+          'pointer-events': canHover ? 'inherit' : 'none'
         }}
-        style=${{ cursor: 'pointer' }}
-        fill=${c + ''}
-        stroke="#333"
-        stroke-width=${isEditing ? 1 : 0}
+        stroke=${c + ''}
+        stroke-width=${thisIsEditing ? 3 : 2}
         onmouseover=${() => dispatch({
           type: 'editingIdx/hover',
           payload: idx
@@ -191,7 +190,7 @@ const ColorL = ({
 
 const ColorAxis = ({
   width = 400,
-  lPct = 0.25,
+  lPct = 0.2,
 }) => {
   const lWidth = width * lPct;
   const height = width - lWidth;
@@ -201,6 +200,14 @@ const ColorAxis = ({
   const colors = palette;
 
   return html`<svg ...${{ width, height }} style=${{ color: '#aaa' }}>
+    <style>
+      .desc {
+        dominant-baseline: text-before-edge;
+        user-select: none;
+        fill: #aaa;
+        font-size: 12px;
+      }
+    </style>
     <${ColorAB} ...${{ width: height, height, colors }} />
     <${ColorL} ...${{ left: height, width: lWidth, height, colors }}/>
   </svg>`;
@@ -209,7 +216,7 @@ const ColorAxis = ({
 export const ColorControls = ({
 }) => {
   return html`<div class="color-controls">
-    <h3>Color Controls</h3>
+    <div class="title">Color Controls</div>
     <${ColorAxis} />
   </div>`;
 };
