@@ -11,8 +11,12 @@ const STYLE = `
 #app h3 {
   color: #888;
 }
-.palette,.color-controls {
+.palette,.color-controls,.palette-list {
   float: left;
+}
+
+.palette-list {
+  margin-left: 10px;
 }
 `;
 
@@ -23,6 +27,14 @@ export const App = () => {
     <style>${STYLE}</style>
     <${Palette} />
     <${ColorControls} />
+    <div class="palette-list">
+      ${state.palette.map(c => {
+        return html`<div style=${{
+          background: c.hex(),
+          width: 80,
+        }}>${c.hex()}</div>`;
+      })}
+    </div>
   </div>
   </${StoreContext.Provider}>
   `;
