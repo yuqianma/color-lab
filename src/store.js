@@ -1,13 +1,15 @@
 import { labEqual } from './util.js';
 
-const PALETTE = `#7fc97f
-#beaed4
-#fdc086
-#ffff99
-#386cb0
-#f0027f
-#bf5b17
-#666666`;
+const PALETTE = `#4c78a8
+#f58518
+#e45756
+#72b7b2
+#54a24b
+#eeca3b
+#b279a2
+#ff9da6
+#9d755d
+#bab0ac`;
 // const PALETTE = `#666666`;
 
 export const initialState = {
