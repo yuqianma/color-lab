@@ -1,4 +1,4 @@
-import { LAB } from './axes.js';
+import { LAB, LCH } from './axes.js';
 import { StoreContext } from '../store-context.js';
 const { useContext } = preactHooks;
 
@@ -29,5 +29,6 @@ export const ColorControls = ({
     <style>${STYLE}</style>
     <div class="title">Color Controls</div>
     <${LAB} colors=${palette}/>
+    <${LCH} colors=${palette}/>
   </div>`;
 };

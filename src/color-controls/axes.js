@@ -7,6 +7,8 @@ const createCoord = ({
   yDomain,
   xName,
   yName,
+  getX,
+  getY,
   getZ,
   toLab,
 }) => ({
@@ -32,13 +34,13 @@ const createCoord = ({
 
   const drag = useDrag((e) => {
     const { offsetX, offsetY } = e;
-    const a = xscale.invert(offsetX);
-    const b = yscale.invert(offsetY);
+    const x = xscale.invert(offsetX);
+    const y = yscale.invert(offsetY);
 
     const idx = e.draggingTarget.dataset.idx;
 
     const current = colorsRef.current[idx];
-    const next = toLab(a, b, getZ(current));
+    const next = toLab(x, y, getZ(current));
     
     current !== next && dispatch({
       type: 'palette/update',
@@ -77,7 +79,7 @@ const createCoord = ({
           cursor: 'pointer',
           'pointer-events': canHover ? 'inherit' : 'none'
         }}
-        cx=${xscale(c.a)} cy=${yscale(c.b)}
+        cx=${xscale(getX(c))} cy=${yscale(getY(c))}
         r=${thisIsEditing ? 7 : 5}
         fill=${c + ''}
         onmouseover=${() => dispatch({
@@ -93,11 +95,12 @@ const createCoord = ({
   </g>`;
 };
 
-const createZ = ({
-  domain,
-  name,
+const createZAxis = ({
+  zDomain,
+  zName,
   getX,
   getY,
+  getZ,
   toLab
 }) => ({
   left,
@@ -110,7 +113,7 @@ const createZ = ({
 }) => {
   const w = width - marginLeft;
   
-  const scale = useMemo(() => d3.scaleLinear(domain, [paddingV, height - paddingV]), [paddingV, height]);
+  const scale = useMemo(() => d3.scaleLinear(zDomain, [paddingV, height - paddingV]), [paddingV, height]);
 
   const { state, dispatch } = useContext(StoreContext);
   const { editingIdx } = state;
@@ -122,12 +125,12 @@ const createZ = ({
 
   const drag = useDrag((e) => {
     const { offsetY } = e;
-    const l = scale.invert(offsetY);
+    const z = scale.invert(offsetY);
 
     const idx = e.draggingTarget.dataset.idx;
 
     const current = colorsRef.current[idx];
-    const next = toLab(getX(current), getY(current), l);
+    const next = toLab(getX(current), getY(current), z);
 
     current !== next && dispatch({
       type: 'palette/update',
@@ -137,9 +140,9 @@ const createZ = ({
 
   return html`<g ...${drag} style=${{ transform: `translate(${left + marginLeft}px,0)` }}>
     <rect width=${w} height=${height} stroke="currentColor" fill="none"/>
-    <text x=5 class="desc">${name}</text>
+    <text x=5 class="desc">${zName}</text>
     ${colors.map((c, idx) => {
-      const y = scale(c.l);
+      const y = scale(getZ(c));
       const thisIsEditing = editingIdx === idx;
       const canHover = !isEditing || thisIsEditing;
       const xy = thisIsEditing ? {
@@ -174,7 +177,7 @@ const createZ = ({
   </g>`;
 };
 
-const createAxes = ({
+const combineAxes = ({
   Coord,
   ZAxis
 }) => ({
@@ -190,26 +193,33 @@ const createAxes = ({
   </svg>`;
 };
 
-const toLab = (x, y, z) => d3.lab(z, x, y);
-
-const AB = createCoord({
-  xDomain: [-128, 128],
-  yDomain: [-128, 128],
-  xName: 'a*',
-  yName: 'b*',
-  getZ: current => current.l,
-  toLab,
-});
-
-const L = createZ({
-  domain: [100, 0],
-  name: 'L*',
-  getX: current => current.a,
-  getY: current => current.b,
-  toLab,
+const createAxes = (props) => combineAxes({
+  Coord: createCoord(props),
+  ZAxis: createZAxis(props)
 });
 
 export const LAB = createAxes({
-  Coord: AB,
-  ZAxis: L
+  xName: 'a*',
+  yName: 'b*',
+  zName: 'L*',
+  xDomain: [-128, 128],
+  yDomain: [-128, 128],
+  zDomain: [100, 0],
+  getX: current => current.a,
+  getY: current => current.b,
+  getZ: current => current.l,
+  toLab: (x, y, z) => d3.lab(z, x, y),
+});
+
+export const LCH = createAxes({
+  xName: 'l',
+  yName: 'c',
+  zName: 'h',
+  xDomain: [0, 100],
+  yDomain: [0, 230],
+  zDomain: [0, 360],
+  getX: current => d3.lch(d3.lab(current)).l,
+  getY: current => d3.lch(d3.lab(current)).c,
+  getZ: current => d3.lch(d3.lab(current)).h,
+  toLab: (x, y, z) => d3.lab(d3.lch(x, y, z))
 });
