@@ -1,5 +1,6 @@
 import { createAxisXY } from './axis-xy.js';
 import { createAxisZ } from './axis-z.js';
+import { clamp } from '../util.js';
 
 const combineAxes = ({
   AxisXY,
@@ -22,6 +23,14 @@ const createAxes = (props) => combineAxes({
   AxisZ: createAxisZ(props)
 });
 
+const limitedLab = (...args) => {
+  const c = d3.lab(...args);
+  c.l = clamp(c.l, 0, 100);
+  c.a = clamp(c.a, -128, 128);
+  c.b = clamp(c.b, -128, 128);
+  return c;
+};
+
 export const LAB = createAxes({
   xName: 'a*',
   yName: 'b*',
@@ -32,7 +41,7 @@ export const LAB = createAxes({
   getX: _ => _.a,
   getY: _ => _.b,
   getZ: _ => _.l,
-  toLab: (x, y, z) => d3.lab(z, x, y),
+  toLab: (x, y, z) => limitedLab(z, x, y),
 });
 
 export const LCH = createAxes({
@@ -45,5 +54,5 @@ export const LCH = createAxes({
   getX: _ => d3.lch(d3.lab(_)).l,
   getY: _ => d3.lch(d3.lab(_)).c,
   getZ: _ => d3.lch(d3.lab(_)).h,
-  toLab: (x, y, z) => d3.lab(d3.lch(x, y, z))
+  toLab: (x, y, z) => limitedLab(d3.lch(x, y, z))
 });

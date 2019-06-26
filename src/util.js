@@ -8,3 +8,5 @@ export const labEqual = (x, y) => {
     && (isNaN(x.b) ? isNaN(y.b) && y.b !== y.b : x.b - 1e-6 <= y.b && y.b <= x.b + 1e-6)
     && (isNaN(x.opacity) ? isNaN(y.opacity) && y.opacity !== y.opacity : y.opacity === x.opacity);
 }
+
+export const clamp = (number, lower, upper) => Math.min(Math.max(lower, number), upper);
