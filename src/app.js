@@ -2,6 +2,7 @@ import { StoreContext } from './store-context.js';
 import { initialState, reducer } from './store.js';
 import { Palette } from './palette.js';
 import { ColorControls } from './color-controls/index.js';
+import { Calculator } from './calculator.js';
 import { Marks } from './marks.js';
 const { useReducer, useMemo, useContext, useRef, useEffect } = preactHooks;
 
@@ -27,6 +28,7 @@ export const App = () => {
     <${Palette} />
     <${ColorControls} />
     <${Marks} />
+    <${Calculator} />
   </div>
   </${StoreContext.Provider}>
   `;
