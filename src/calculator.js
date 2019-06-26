@@ -7,10 +7,12 @@ const STYLE = `
 }
 `;
 
+const DefaultValue = '#4c78a8\n#f58518';
+
 export const Calculator = ({
   width = 100,
 }) => {
-  const [texts, setTexts] = useState('');
+  const [texts, setTexts] = useState(DefaultValue);
 
   const calc = useCallback((e) => {
     setTexts(e.target.value);
@@ -37,7 +39,7 @@ export const Calculator = ({
     class="calculator"
     style=${{ width }}
   >
-    <textarea oninput=${calc}></textarea>
+    <textarea oninput=${calc}>${DefaultValue}</textarea>
     <div>${result}</div>
   </div>`;
 };
