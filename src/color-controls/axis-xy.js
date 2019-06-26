@@ -1,6 +1,6 @@
 import { StoreContext } from '../store-context.js';
 import { useDrag } from '../use-drag.js';
-const { useMemo, useContext, useRef } = preactHooks;
+const { useMemo, useContext, useState } = preactHooks;
 
 export const createAxisXY = ({
   xDomain,
@@ -27,25 +27,33 @@ export const createAxisXY = ({
   const { state, dispatch } = useContext(StoreContext);
   const { editingIdx } = state;
 
-  const isEditing = editingIdx != null;
+  const [ref] = useState({ colors, dragging: false });
+  ref.colors = colors;
 
-  const colorsRef = useRef(colors);
-  colorsRef.current = colors;
+  const drag = useDrag({
+    startPosition: (e) => ({
+      x: e.offsetX,
+      y: e.offsetY
+    }),
+    drag: ({ target, x, y }) => {
+      ref.dragging = true;
 
-  const drag = useDrag((e) => {
-    const { offsetX, offsetY } = e;
-    const x = xscale.invert(offsetX);
-    const y = yscale.invert(offsetY);
-
-    const idx = e.draggingTarget.dataset.idx;
-
-    const current = colorsRef.current[idx];
-    const next = toLab(x, y, getZ(current));
-    
-    current !== next && dispatch({
-      type: 'palette/update',
-      payload: { idx, next }
-    });
+      x = xscale.invert(x);
+      y = yscale.invert(y);
+  
+      const idx = target.dataset.idx;
+  
+      const current = ref.colors[idx];
+      const next = toLab(x, y, getZ(current));
+      
+      current !== next && dispatch({
+        type: 'palette/update',
+        payload: { idx, next }
+      });
+    },
+    end: () => {
+      ref.dragging = false;
+    }
   }, [/* FIXME */]);
 
   return html`<g>
@@ -72,12 +80,10 @@ export const createAxisXY = ({
     <g ...${drag}>
     ${colors.map((c, idx) => {
       const thisIsEditing = editingIdx === idx;
-      const canHover = !isEditing || thisIsEditing;
       return html`<circle
         data-idx=${idx}
         style=${{
           cursor: 'pointer',
-          'pointer-events': canHover ? 'inherit' : 'none'
         }}
         cx=${xscale(getX(c))} cy=${yscale(getY(c))}
         r=${thisIsEditing ? 7 : 5}
@@ -86,7 +92,7 @@ export const createAxisXY = ({
           type: 'editingIdx/hover',
           payload: idx
         })}
-        onmouseout=${() => dispatch({
+        onmouseout=${(e) => !ref.dragging && dispatch({
           type: 'editingIdx/unhover'
         })}
       />`
