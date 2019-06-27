@@ -20,7 +20,7 @@ export const createAxisZ = ({
 }) => {
   const w = width - marginLeft;
   
-  const scale = useMemo(() => d3.scaleLinear(zDomain, [paddingV, height - paddingV]), [paddingV, height]);
+  const scale = useMemo(() => d3.scaleLinear(zDomain, [height - paddingV, paddingV]), [paddingV, height]);
 
   const { state, dispatch } = useContext(StoreContext);
   const { editingIdx } = state;
@@ -61,7 +61,7 @@ export const createAxisZ = ({
         'text-anchor': 'end',
       }}
       x=${width - 2}
-    >${zDomain[0]}</text>
+    >${zDomain[1]}</text>
     <text
       style=${{
         'text-anchor': 'end',
@@ -69,7 +69,7 @@ export const createAxisZ = ({
       }}
       x=${width - 2}
       y=${height}
-    >${zDomain[1]}</text>
+    >${zDomain[0]}</text>
     ${colors.map((c, idx) => {
       const y = scale(getZ(c));
       const thisIsEditing = editingIdx === idx;

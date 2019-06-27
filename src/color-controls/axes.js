@@ -37,7 +37,7 @@ export const LAB = createAxes({
   zName: 'L*',
   xDomain: [-128, 128],
   yDomain: [-128, 128],
-  zDomain: [100, 0],
+  zDomain: [0, 100],
   getX: _ => _.a,
   getY: _ => _.b,
   getZ: _ => _.l,
