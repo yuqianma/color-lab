@@ -55,7 +55,21 @@ export const createAxisZ = ({
 
   return html`<g ...${drag} style=${{ transform: `translate(${left + marginLeft}px,0)` }}>
     <rect width=${w} height=${height} stroke="currentColor" fill="none"/>
-    <text x=5 class="desc">${zName}</text>
+    <text x=5>${zName}</text>
+    <text
+      style=${{
+        'text-anchor': 'end',
+      }}
+      x=${width - 2}
+    >${zDomain[0]}</text>
+    <text
+      style=${{
+        'text-anchor': 'end',
+        'dominant-baseline': 'text-after-edge'
+      }}
+      x=${width - 2}
+      y=${height}
+    >${zDomain[1]}</text>
     ${colors.map((c, idx) => {
       const y = scale(getZ(c));
       const thisIsEditing = editingIdx === idx;

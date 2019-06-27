@@ -6,10 +6,10 @@ const STYLE = `
 .color-controls svg {
   color: #aaa;
 }
-.color-controls svg .desc {
+.color-controls svg text {
   dominant-baseline: text-before-edge;
   user-select: none;
-  fill: #aaa;
+  fill: #ccc;
   font-size: 12px;
 }
 .color-controls .controller {

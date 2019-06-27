@@ -58,7 +58,7 @@ export const createAxisXY = ({
 
   return html`<g>
     <rect ...${{ width, height }} stroke="currentColor" fill="none"/>
-    <text x=5 class="desc">${xName}, ${yName}</text>
+    <text x=5>${xName}, ${yName}</text>
     <line
       ...${{
         x1: padding,
@@ -68,6 +68,17 @@ export const createAxisXY = ({
         stroke: 'currentColor'
       }}
     />
+    <text
+      x=${padding}
+      y=${height / 2}
+    >${xDomain[0]}</text>
+    <text
+      style=${{
+        'text-anchor': 'end',
+      }}
+      x=${width - padding}
+      y=${height / 2}
+    >${xDomain[1]}</text>
     <line
       ...${{
         x1: width / 2,
@@ -77,6 +88,22 @@ export const createAxisXY = ({
         stroke: 'currentColor'
       }}
     />
+    <text
+      style=${{
+        'text-anchor': 'end',
+        'dominant-baseline': 'central'
+      }}
+      x=${width / 2 - 2}
+      y=${padding}
+    >${yDomain[1]}</text>
+    <text
+      style=${{
+        'text-anchor': 'end',
+        'dominant-baseline': 'central'
+      }}
+      x=${width / 2 - 2}
+      y=${height - padding}
+    >${yDomain[0]}</text>
     <g ...${drag}>
     ${colors.map((c, idx) => {
       const thisIsEditing = editingIdx === idx;
