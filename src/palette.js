@@ -10,13 +10,22 @@ const STYLE = `
   font-family: monospace;
   font-size: 13px;
 }
-.palette .text-box [contenteditable] {
+.palette .text-box .inputarea {
+  box-sizing: border-box;
+  background: transparent;
+  resize: none;
+  font-family: monospace;
+  font-size: 13px;
   position: absolute;
   top: 0;
   border: 1px solid #aaa;
   padding: 2px;
   padding-left: 1em;
-  box-sizing: border-box;
+  color: #555;
+}
+.palette .text-box .inputarea:focus {
+  outline: 2px solid #ccc;
+  border-color: transparent;
 }
 .palette .text-box .icons {
   padding: 3px;
@@ -40,16 +49,16 @@ export const Palette = ({
           return html`<div style=${{ color: c.hex() }}>•</div>`;
         })}
       </div>
-      <div
-        contenteditable="plaintext-only"
+      <textarea
+        class="inputarea"
         style=${{ width: 100, height: 300 }}
-        onblur=${e => dispatch({
+        onchange=${e => dispatch({
           type: 'palette/replace',
-          payload: e.target.textContent.trim().split('\n')
+          payload: e.target.value.trim().split('\n')
         })}
+        value=${palette.map(c => c.hex()).join('\n')}
       >
-        ${palette.map(c => c.hex()).join('\n')}
-      </div>
+      </textarea>
     </div>
     
   </div>`;
