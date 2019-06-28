@@ -34,7 +34,7 @@ const reducers = {
   'editingIdx/unhover': () => null,
 };
 
-export function reducer(state, { type, payload }) {
+function reducer(state, { type, payload }) {
   const subReducer = reducers[type];
   if (!subReducer) {
     console.warn(`cannot find action: "${type}"`);
@@ -55,4 +55,18 @@ export function reducer(state, { type, payload }) {
   }
 
   return subReducer(state, payload);
+}
+
+function devReducer(state, action) {
+  const nextState = reducer(state, action);
+  console.log(action.type, action.payload, nextState);
+  return nextState;
+}
+
+const DEV = window.localStorage.getItem('DEV');
+
+const finalReducer = DEV ? devReducer : reducer;
+
+export {
+  finalReducer as reducer
 }
