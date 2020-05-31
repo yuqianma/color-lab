@@ -21,6 +21,9 @@
     "tailwindcss": "^1.4.6"
   },
   "dependencies": {
+    "d3-color": "^1.4.1",
+    "d3-hsv": "^0.1.0",
+    "d3-scale": "^3.2.1",
     "sirv-cli": "^0.4.4"
   }
 }
