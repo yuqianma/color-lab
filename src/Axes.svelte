@@ -1,4 +1,5 @@
 <script>
+import { createEventDispatcher } from 'svelte';
 import { scaleLinear } from 'd3-scale';
 import { lab } from 'd3-color';
 import { pannable } from './utils/pannable.js';
@@ -14,13 +15,7 @@ const PALETTE = `#4c78a8
 #9d755d
 #bab0ac`;
 
-export let colors = PALETTE.split('\n').map(c => lab(c));
-export let getters = {
-  x: _ => _.a,
-  y: _ => _.b,
-  z: _ => _.l,
-};
-export let toCssColor = _ => _ + '';
+const dispatch = createEventDispatcher();
 
 export let boxSize = 300;
 export let sideSize = 75;
@@ -40,16 +35,41 @@ $: yScale = scaleLinear(yDomain, range);
 
 $: zScale = scaleLinear(zDomain, range);
 
+let colors = PALETTE.split('\n').map(c => lab(c));
+export let getters = {
+  x: _ => _.a,
+  y: _ => _.b,
+  z: _ => _.l,
+};
+export let setter = ({x, y, z}) => {
+  return lab(
+    zScale.invert(z),
+    xScale.invert(x),
+    yScale.invert(y)
+  )
+};
+export let toCssColor = _ => _ + '';
+
+let modIdx = -1;
+
 function handlePanStart(e) {
-  console.log(e);
+  modIdx = e.target.dataset.idx;
 }
 
 function handlePanMove(e) {
-  console.log(e);
+  const { attributes } = e.target;
+  const cx = +attributes.cx.value;
+  const cy = +attributes.cy.value;
+  colors[modIdx] = setter({
+    x: cx + e.detail.dx,
+    y: cy + e.detail.dy,
+    z: zScale(getters.z(colors[modIdx]))
+  });
+  colors = [...colors];
 }
 
 function handlePanEnd(e) {
-  console.log(e);
+  modIdx = -1;
 }
 </script>
 
@@ -59,6 +79,7 @@ function handlePanEnd(e) {
     <g>
       {#each colors as color, idx}
         <circle
+          data-idx={idx}
           use:pannable
           on:panstart={handlePanStart}
           on:panmove={handlePanMove}
@@ -77,6 +98,7 @@ function handlePanEnd(e) {
     <g>
       {#each colors as color, idx}
         <rect
+          data-idx={idx}
           use:pannable
           on:panstart={handlePanStart}
           on:panmove={handlePanMove}
