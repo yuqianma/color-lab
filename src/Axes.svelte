@@ -51,29 +51,48 @@ export let setter = ({x, y, z}) => {
 export let toCssColor = _ => _ + '';
 
 let modIdx = -1;
+let hoverIdx = -1;
 
 function handlePanStart(e) {
-  modIdx = e.target.dataset.idx;
+  modIdx = +e.target.dataset.idx;
 }
 
 function handlePanMove(e) {
   const { attributes } = e.target;
-  const cx = +attributes.cx.value;
-  const cy = +attributes.cy.value;
-  colors[modIdx] = setter({
-    x: cx + e.detail.dx,
-    y: cy + e.detail.dy,
-    z: zScale(getters.z(colors[modIdx]))
-  });
+  let color = colors[modIdx];
+  if (e.target.tagName === 'circle') {
+    const cx = +attributes.cx.value;
+    const cy = +attributes.cy.value;
+    color = {
+      x: cx + e.detail.dx,
+      y: cy + e.detail.dy,
+      z: zScale(getters.z(color))
+    };
+  } else {
+    const z = +attributes.y.value;
+    color = {
+      x: xScale(getters.x(color)),
+      y: yScale(getters.y(color)),
+      z: z + e.detail.dy
+    };
+  }
+  colors[modIdx] = setter(color);
   colors = [...colors];
 }
 
 function handlePanEnd(e) {
   modIdx = -1;
 }
-</script>
 
-<svg width={boxSize + sideSize} height={boxSize}>
+function handleMouseEnter(e) {
+  hoverIdx = +e.target.dataset.idx;
+}
+
+function handleMouseLeave(e) {
+  hoverIdx = -1;
+}
+</script>
+<svg width={boxSize + sideSize} height={boxSize} class:modifying="{modIdx !== -1}">
   <g transform="translate({contentOffset}, {contentOffset})">
     <rect class="border" width={boxSize - borderWidth} height={boxSize - borderWidth} />
     <g>
@@ -84,10 +103,12 @@ function handlePanEnd(e) {
           on:panstart={handlePanStart}
           on:panmove={handlePanMove}
           on:panend={handlePanEnd}
-          class="pannable"
+          on:mouseenter={handleMouseEnter}
+          on:mouseleave={handleMouseLeave}
+          class="color pannable"
+          class:focus="{idx === modIdx || idx === hoverIdx}"
           cx={xScale(getters.x(color))}
           cy={yScale(getters.y(color))}
-          r=5
           fill={toCssColor(color)}
         />
       {/each}
@@ -103,12 +124,15 @@ function handlePanEnd(e) {
           on:panstart={handlePanStart}
           on:panmove={handlePanMove}
           on:panend={handlePanEnd}
-          class="pannable"
-          x={padding}
+          on:mouseenter={handleMouseEnter}
+          on:mouseleave={handleMouseLeave}
+          class="color pannable"
+          class:focus="{idx === modIdx || idx === hoverIdx}"
+          style="--padding: {padding}px;--side-size: {sideSize}px;"
           y={zScale(getters.z(color))}
           width={sideSize - padding * 2}
-          height=2
-          fill={toCssColor(color)}
+          height=1
+          stroke={toCssColor(color)}
         />
       {/each}
     </g>
@@ -120,6 +144,10 @@ svg {
   color: #ccc;
 }
 
+svg.modifying {
+  pointer-events: none;
+}
+
 .border {
   stroke: currentColor;
   fill: none;
@@ -128,4 +156,34 @@ svg {
 .pannable {
   cursor: pointer;
 }
+
+.color {
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+circle.color {
+  r: 5px;
+  transition-property: r;
+}
+circle.color.focus {
+  r: 7px;
+}
+
+rect.color {
+  x: var(--padding);
+  width: calc(var(--side-size) - var(--padding) * 2);
+  stroke-width: 1px;
+  transition-property: x, width;
+}
+rect.color.focus {
+  x: calc(var(--padding) - 2px);
+  width: calc(var(--side-size) - var(--padding) * 2 + 4px);
+  stroke-width: 2px;
+}
+
+.color.focus {
+  pointer-events: all;
+}
+
 </style>
